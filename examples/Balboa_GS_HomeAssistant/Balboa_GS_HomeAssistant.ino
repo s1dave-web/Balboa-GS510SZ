@@ -68,7 +68,7 @@ HABinarySensor heater("Heater");
 HABinarySensor pump1("Pump1");
 HABinarySensor pump2("Pump2");
 HABinarySensor pump3("Pump3");
-HABinarySensor lights("Lights");
+HALight lights("Lights"); // needs ArduinoHA 2.0.0+
 HAButton pump1Button("Pump1");
 HAButton pump2Button("Pump2");
 HAButton pump3Button("Pump3");
@@ -185,6 +185,7 @@ void setup_HA() {
     pump3Button.onCommand(onButtonPress);
 
     lights.setName("Lights");
+    lights.onStateCommand(onStateCommand)
     lightsButton.setName("Lights");
     lightsButton.onCommand(onButtonPress);
 
@@ -240,6 +241,13 @@ void loop() {
 /**************************************************************************/
 /* Subscribe to MQTT topic                                                */
 /**************************************************************************/
+
+void onStateCommand(bool state, HALight* sender) {
+     if(Balboa.displayLight != state) {
+          Balboa.writeDisplayData = true;
+          Balboa.writeLight       = true; 
+     }
+}
 
 void onButtonPress(HAButton* sender) {
   
