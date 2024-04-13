@@ -156,7 +156,7 @@ void setup_wifi() {
 
 void setup_HA() {
     device.setName("Hottub");
-    device.setSoftwareVersion("1.2");
+    device.setSoftwareVersion("1.3");
     device.setManufacturer("Balboa");
     device.setModel("GS510SZ");
 
