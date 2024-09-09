@@ -16,7 +16,7 @@
 #include <ESP8266WiFi.h>  
 #endif
 #include <ElegantOTA.h>                  // https://github.com/ayushsharma82/ElegantOTA
-#include <ArduinoHA.h>
+#include <ArduinoHA.h>                  // https://github.com/dawidchyrzynski/arduino-home-assistant
 #include <Balboa_GS_Interface.h>        // https://github.com/MagnusPer/Balboa-GS510SZ    
 
 #ifdef ESP32
@@ -65,14 +65,9 @@ ESP8266WebServer server(80);
 HASensor display("Display");
 HASensorNumber waterTemp("waterTemp", HANumber::PrecisionP1);
 HABinarySensor heater("Heater");
-HABinarySensor pump1("Pump1");
-HABinarySensor pump2("Pump2");
-HABinarySensor pump3("Pump3");
-HABinarySensor lights("Lights");
-HAButton pump1Button("Pump1");
-HAButton pump2Button("Pump2");
-HAButton pump3Button("Pump3");
-HAButton lightsButton("Lights");
+HASwitch pump1("Pump1");
+HASwitch pump2("Pump2");
+HALight lights("Lights"); // needs ArduinoHA 2.0.0+
 HAButton tempUpButton("TempUp");
 HAButton tempDownButton("TempDown");
 HAButton modeButton("Mode");
@@ -161,7 +156,7 @@ void setup_wifi() {
 
 void setup_HA() {
     device.setName("Hottub");
-    device.setSoftwareVersion("1.2");
+    device.setSoftwareVersion("1.3");
     device.setManufacturer("Balboa");
     device.setModel("GS510SZ");
 
@@ -173,20 +168,13 @@ void setup_HA() {
     heater.setName("Heater");
 
     pump1.setName("Pump1");
-    pump1Button.setName("Pump1");
-    pump1Button.onCommand(onButtonPress);
+    pump1.onCommand(onSwitchCommand);
 
     pump2.setName("Pump2");
-    pump2Button.setName("Pump2");
-    pump2Button.onCommand(onButtonPress);
-
-    pump3.setName("Pump3");
-    pump3Button.setName("Pump3");
-    pump3Button.onCommand(onButtonPress);
+    pump2.onCommand(onSwitchCommand);
 
     lights.setName("Lights");
-    lightsButton.setName("Lights");
-    lightsButton.onCommand(onButtonPress);
+    lights.onStateCommand(onStateCommand);
 
 
     tempUpButton.setName("Temp Up");
@@ -230,7 +218,6 @@ void loop() {
           heater.setState(Balboa.displayHeater);
           pump1.setState(Balboa.displayPump1);
           pump2.setState(Balboa.displayPump2);
-          // pump3.setState(Balboa.displayPump3);
           lights.setState(Balboa.displayLight);
           hvac.setCurrentTargetTemperature(Balboa.waterTemperature);
     } 
@@ -241,6 +228,32 @@ void loop() {
 /* Subscribe to MQTT topic                                                */
 /**************************************************************************/
 
+void onStateCommand(bool state, HALight* sender) {
+     if(Balboa.displayLight != state) {
+        sendCommand("Light");
+     }
+}
+
+void onSwitchCommand(bool state, HASwitch* sender) {
+  String name = sender->getName();
+
+  if(name == "Pump1") {
+    if(Balboa.displayPump1 != state) {
+      sendCommand("Pump1");
+    }
+  }
+  else if(name == "Pump2") {
+    if(Balboa.displayPump2 != state) {
+      sendCommand("Pump2");
+    }
+  }
+  else {
+    Serial.printf("Unknown switch %s\n", name);
+  }
+
+}
+
+
 void onButtonPress(HAButton* sender) {
   
     // Handling incoming messages
@@ -248,6 +261,10 @@ void onButtonPress(HAButton* sender) {
     Serial.println(sender->getName());
 
     String s_payload = sender->getName();
+    sendCommand(s_payload);
+}
+
+void sendCommand(String s_payload) {
          
              if (s_payload == "TempUp") {
                   Balboa.writeDisplayData = true; 
@@ -285,4 +302,3 @@ void onButtonPress(HAButton* sender) {
              }
       
 }
-      
