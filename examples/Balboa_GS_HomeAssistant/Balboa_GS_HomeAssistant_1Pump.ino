@@ -159,10 +159,10 @@ void setup_wifi() {
 
 
 void setup_HA() {
-    device.setName("StrongSpa G2");
-    device.setSoftwareVersion("1.5");
+    device.setName("Spa");
+    device.setSoftwareVersion("1.0");
     device.setManufacturer("Balboa");
-    device.setModel("GS501SZ");
+    device.setModel("GS510SZ");
 
     waterTemp.setUnitOfMeasurement("°C");
     waterTemp.setDeviceClass("temperature");
